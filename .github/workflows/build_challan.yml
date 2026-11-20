@@ -1,0 +1,48 @@
+name: Auto-Generate ISHR Case Challan
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'generate_challan.py'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-docx:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate 14x22 cm Case Challan DOCX
+        run: python generate_challan.py
+
+      - name: Upload Generated DOCX as Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ISHR-Case-Challan-14x22cm
+          path: ISHR_Indian_Chapter_Case_Challan_14x22cm.docx
+
+      - name: Commit Generated DOCX to Repository
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add ISHR_Indian_Chapter_Case_Challan_14x22cm.docx
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate updated Case Challan DOCX"
+          git push
+          
